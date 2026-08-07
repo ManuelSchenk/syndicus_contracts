@@ -10,7 +10,7 @@ kennt keine Klartext-Stammdaten (Konzept-TODO D18).
 
 import datetime
 import uuid
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -23,6 +23,27 @@ class AuditEntryRead(BaseModel):
     action: str
     confidence: float
     timestamp: datetime.datetime
+    detail_data: dict[str, Any] | None = None
+
+
+class AuditAppend(BaseModel):
+    """Box-seitiger Audit-Eintrag (``POST /cases/{case_id}/audit``).
+
+    Vorgänge, die seit dem Split auf der Box laufen (Nachanonymisieren,
+    Fehlteil-Verwerfen, Mappen-Freigabe), haben dort kein Audit-Log — die
+    revisionsfeste Spur des Falls liegt zentral. Diese Naht trägt sie nach.
+
+    Invarianten: ``action``/``detail_data`` sind wie jedes zentrale Feld
+    ANONYMISIERT (die Box schreibt nie Klartext-PII hinein — auch keine
+    markierten Aliasse, nur Platzhalter-Token und Zählwerte). Den Zeitstempel
+    setzt der Core (wie bei ``IngestStatusEvent``) — eine schiefe Box-Uhr darf
+    die Reihenfolge der Spur nicht verdrehen. ``agent`` darf KEIN
+    Pipeline-Agent sein: deren Einträge räumt der nächste Lauf weg.
+    """
+
+    agent: str
+    action: str
+    confidence: float = 1.0
     detail_data: dict[str, Any] | None = None
 
 
@@ -153,6 +174,37 @@ class CaseDocumentRead(BaseModel):
     source_file_hash: str = ""
     adapter_created_at: str = ""
     adapter_updated_at: str = ""
+
+
+class CaseDocumentPatch(BaseModel):
+    """Partielles Update EINER Dokument-Row
+    (``PATCH /cases/{case_id}/documents/{row_id}``). ``None`` = nicht anfassen.
+
+    Gegenstück zum Vollstand-Push: lädt die Box ein einzelnes lokales Dokument
+    in die Kanzleisoftware, ändert sich genau diese Row (echte ``document_id``,
+    ``synced_to_adapter``). Vor dieser Naht ging das nur als Echo-Push über
+    ``PUT /ingest`` — der komplette Bestand samt Volltext je Dokument über die
+    Leitung, nur damit ein Feld kippt.
+
+    Bewusst OHNE ``extracted_text``: Textänderungen gehören in den
+    Ingest-Push, wo die Review-Äquivalenz über Prüf-Freigabe, Summaries und
+    Wissensschicht entscheidet. Diese Route ändert nur Identität/Metadaten —
+    der Prüf-Stempel bleibt darum unberührt (und muss es: der Anwalt hat den
+    unveränderten Text freigegeben).
+    """
+
+    document_id: str | None = None
+    actaport_ordner_id: int | None = None
+    filename: str | None = None
+    mime_type: str | None = None
+    size: int | None = None
+    description: str | None = None
+    doc_type: str | None = None
+    folder_path: str | None = None
+    synced_to_adapter: bool | None = None
+    adapter_created_at: str | None = None
+    adapter_updated_at: str | None = None
+    source_file_hash: str | None = None
 
 
 class CaseDisplay(BaseModel):
@@ -324,3 +376,10 @@ class CommunicationDraftUpdate(BaseModel):
     body: str | None = None
     recipient_name: str | None = None
     recipient_email: str | None = None
+    # Versandstempel des Box-seitigen KS-Uploads (DOCX + Briefkopf): der Upload
+    # passiert in der Kanzlei, der Zustand gehört zum Fall. Ohne ihn gäbe es
+    # weder Doppelversand-Schutz noch den „erledigt"-Zustand im UI — ein Reload
+    # zeigte den versendeten Entwurf wieder als „draft".
+    status: Literal["draft", "sent"] | None = None
+    actaport_document_id: str | None = None
+    uploaded_at: datetime.datetime | None = None
