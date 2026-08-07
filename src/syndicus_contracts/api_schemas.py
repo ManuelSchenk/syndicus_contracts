@@ -47,6 +47,43 @@ class AuditAppend(BaseModel):
     detail_data: dict[str, Any] | None = None
 
 
+class AnonymizationConfirm(BaseModel):
+    """Fall-Level-Freigabe der Anonymisierung
+    (``POST /cases/{case_id}/anonymization-confirm``, Box → Core).
+
+    Die dokument-genauen Stempel schreibt die Box über ``confirm-review``;
+    DAS hier ist die Aussage „diese Akte wurde am X von Y zur Übermittlung
+    freigegeben" — ein Rechtsfakt (rechtliches.md). Er gehört in die
+    zentrale, revisionsfeste Spur und nicht in eine SQLite-Datei der Box:
+    im Streitfall zählt, was unveränderlich protokolliert ist.
+
+    Den Zeitstempel setzt der Core; idempotent — eine bereits freigegebene
+    Akte behält ihren ersten Stempel (und bekommt keinen zweiten Audit-Eintrag).
+    """
+
+    confirmed_by: str | None = None  # Anzeigename des Freigebenden (Box-UX)
+
+
+class ReanonymizationReport(BaseModel):
+    """Meldung der Box nach einer Nachanonymisierung
+    (``POST /cases/{case_id}/reanonymized``).
+
+    Der Anwalt hat einen vom Anonymizer ÜBERSEHENEN Klartext-Treffer
+    nachgetragen oder geschwärzt. Die Box korrigiert, was sie besitzt
+    (Dokumenttexte, Titel) — alles zentral daraus ABGELEITETE trägt den alten
+    Klartext weiter: Dokument-Kurzfassungen und Wissensschicht, ``analysis``,
+    ``advice``, ``legal_research``, Entwürfe, Neuigkeiten-Texte.
+
+    Der Core kann sie nicht reparieren: die Suche bräuchte den Klartext-Alias,
+    und genau der darf hier nie ankommen. Deshalb **verwirft** er sie — was
+    aus dem alten Text entstand, ist ungültig. Die Felder sind reine
+    Protokoll-Angaben (keine PII: Zählwert + Flag).
+    """
+
+    documents_changed: int = 0
+    blackout: bool = False
+
+
 class AttorneyWorkload(BaseModel):
     name: str
     open_cases: int
