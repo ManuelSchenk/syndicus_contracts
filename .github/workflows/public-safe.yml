@@ -1,0 +1,64 @@
+# Wächter für ein ÖFFENTLICHES Repo. Läuft bei jedem Push und jedem PR — auch
+# auf Forks, denn genau dort landet ein Versehen zuerst.
+#
+# Musterbasiert, ohne Namensliste: eine Denylist mit Mandanten-/Kanzlei-Namen
+# wäre in einem öffentlichen Repo selbst die Preisgabe, die sie verhindern soll.
+# Die Namensprüfung läuft privat, bevor ein Stand hierher synchronisiert wird
+# (siehe README → „Der Weg hierher").
+name: public-safe
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Volle Historie: ein Secret, das später entfernt wurde, steht in einem
+          # öffentlichen Repo trotzdem noch in jedem Fork und jedem Cache.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Arbeitsbaum scannen
+        run: python scripts/scan_public_safe.py
+
+      - name: Historie scannen (jeder je committete Stand)
+        run: |
+          set -euo pipefail
+          fail=0
+          for sha in $(git rev-list --all); do
+            git checkout -q "$sha" -- . 2>/dev/null || continue
+            if ! python scripts/scan_public_safe.py > /tmp/out.txt 2>&1; then
+              echo "::error::Fund in Commit $sha"
+              cat /tmp/out.txt
+              fail=1
+            fi
+            git checkout -q HEAD -- .
+          done
+          exit $fail
+
+      - name: Paket baut
+        run: |
+          pip install --quiet build
+          python -m build --wheel --outdir /tmp/dist
+          ls -la /tmp/dist
+
+      - name: Version passt zu CONTRACT_VERSION
+        run: |
+          set -euo pipefail
+          pkg=$(python -c "import tomllib,pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
+          wire=$(python -c "import re,pathlib; print(re.search(r'CONTRACT_VERSION = \"(\d+)\"', pathlib.Path('src/syndicus_contracts/__init__.py').read_text()).group(1))")
+          echo "Paket=$pkg  Draht=$wire"
+          if [ "${pkg%%.*}" != "$wire" ]; then
+            echo "::error::MAJOR der Paketversion ($pkg) != CONTRACT_VERSION ($wire) — siehe pyproject.toml"
+            exit 1
+          fi

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
+
+# Private Denylist (Mandanten-/Kanzlei-Begriffe) gehoert NIE in dieses Repo —
+# der Scanner lehnt eine Datei ab, die hier drin liegt. Regel doppelt gesichert.
+denylist*.txt
