@@ -288,6 +288,32 @@ class CaseNewsItem(BaseModel):
     uploaded_at: datetime.datetime | None = None
 
 
+class CaseNewsCreate(BaseModel):
+    """Body für ``POST /cases/{id}/news`` (Box → Core).
+
+    Für Neuigkeiten, die NICHT aus der Analyse-Hälfte stammen: die
+    Auto-Zuordnung des Posteingangs meldet die frisch angehängte Mail sofort,
+    weil ``document_delta`` sie nicht melden kann — der Agent braucht eine
+    vorherige Analyse, die ein eben erst aus der Kanzleisoftware gezogener Fall
+    per Definition nicht hat (docs/client/mail-auto-zuordnung.md § 7).
+
+    ``headline``/``note_text`` sind bereits anonymisiert — die Box anonymisiert
+    vor dem Push, dieser Stack persistiert nie Klartext.
+    """
+
+    source: str  # NEWS_SOURCES: "posteingang" | "kanzleisoftware"
+    result: str = "news"
+    headline: str
+    # Dokument-IDs der Neuigkeit — zugleich der Idempotenz-Schlüssel von
+    # ``document_delta``: was hier referenziert ist, meldet der Agent später
+    # nicht ein zweites Mal.
+    new_document_ids: list[str] = []
+    # Anzeigenamen (Dateinamen) für die UI; landen in ``detail.new_documents``,
+    # wo ``CaseNewsItem.new_documents`` sie liest.
+    new_documents: list[str] = []
+    note_text: str | None = None
+
+
 class CaseNewsMarkUploaded(BaseModel):
     """Body für ``POST /cases/{id}/news/{news_id}/mark-uploaded`` (Box → Core).
 
