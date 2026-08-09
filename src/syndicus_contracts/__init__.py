@@ -14,3 +14,14 @@ CONTRACT_VERSION_HEADER = "X-Syndicus-Contract-Version"
 # Header für den Tenant-API-Key (der Tenant wird serverseitig aus dem Key
 # abgeleitet — er ist NIE ein Feld, das der Client selbst behauptet).
 API_KEY_HEADER = "X-Api-Key"
+
+# Betriebsmodus-Deklaration der Box (ab v1.3.0, additiv): "anonym" oder
+# "klartext". Die Box sendet den Header auf JEDEM Core-Call; der Core
+# validiert ihn gegen die konfigurierte Tenant-Eigenschaft und lehnt einen
+# Mismatch mit 409 ab, BEVOR irgendetwas geschrieben wird — Config-Drift
+# zwischen Box und Core kann so nie still Rohtext in einen Anonym-Korpus
+# (oder Platzhalter in einen Klartext-Korpus) schieben. Fehlender Header
+# gilt im Registry-Betrieb als Deklaration "anonym" (alte Boxen laufen bei
+# Anonym-Tenants weiter; ein Klartext-Tenant verlangt die explizite
+# Deklaration).
+OPERATING_MODE_HEADER = "X-Syndicus-Operating-Mode"
