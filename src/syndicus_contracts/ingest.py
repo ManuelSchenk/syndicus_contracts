@@ -134,8 +134,22 @@ class StagePosteingangBody(BaseModel):
     ``dedupe_key`` (Hash des ROHEN Mailinhalts, Box-seitig gebildet) macht
     die document_id deterministisch: eine erneut zugestellte, inhaltsgleiche
     Mail landet nicht doppelt in der Akte.
+
+    Seit 1.4.0 staged die Box über dieselbe Route auch die **Anhänge** einer
+    Mail — je Anhang ein eigenes Dokument mit dem OCR-Text des Originals.
+    Dafür die vier optionalen Felder: ``document_id`` setzt die Identität
+    explizit (statt sie aus ``dedupe_key`` abzuleiten) und trägt über die
+    Namenskonvention ``local:mail:<dedupe>:att:<index>`` zugleich die
+    Zugehörigkeit zur Mail — Parent/Child ohne neue Spalte, und über
+    Ingest-Roundtrips hinweg stabil. ``mime_type``/``ocr_method``/``doc_type``
+    beschreiben den Anhang statt der Mail. Alle vier haben Defaults; ein
+    Aufrufer der alten Fassung verhält sich unverändert.
     """
 
     body: str
     filename: str = "Posteingang_Mandanten-Mail.txt"
     dedupe_key: str | None = None
+    document_id: str | None = None
+    mime_type: str = "text/plain"
+    ocr_method: str = "posteingang"
+    doc_type: str = "Posteingang"
