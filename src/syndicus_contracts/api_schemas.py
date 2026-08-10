@@ -211,6 +211,24 @@ class CaseDocumentRead(BaseModel):
     source_file_hash: str = ""
     adapter_created_at: str = ""
     adapter_updated_at: str = ""
+    # A5/V4-Kurzfassung des LOW-LLM (``summarize_documents``, docs/voranalyse.md
+    # § 5) — der Render-String, den die Akte-Ansicht über dem Dokumenttext
+    # zeigt. Aus anonymisiertem Text erzeugt, trägt also Platzhalter; die Box
+    # deanonymisiert ihn fürs Anzeigen. "" = noch keine Kurzfassung (der
+    # summarize-Step lief nicht/nicht erfolgreich für dieses Dokument) — dann
+    # zeigt die UI keinen Kasten.
+    summary: str = ""
+    # V4-Wissensschicht L0/L1 (docs/voranalyse.md § 5.2) — die STRUKTUR hinter
+    # dem Render-String: dok_art/dok_datum/relevanz, die ungekappten
+    # Selektions-Signale (erwaehnte_daten, betraege, anlagen_refs,
+    # schlagworte), seiten sowie ``index_complete``/``luecken``. Die Akte-
+    # Ansicht baut daraus Schlagwort-Chips und die Vollständigkeits-Ampel
+    # („S. 90–140 nicht erfasst") — ohne sie sähe ein Dokument mit drei
+    # gescheiterten Map-Chunks aus wie ein sauber indiziertes.
+    # ``chunk_summaries`` (L2) bleibt bewusst DRAUSSEN: das wären je Dokument
+    # etliche Kilobyte in jedem Fall-Abruf; die Abschnittsliste holt sich die
+    # UI bei Bedarf einzeln.
+    summary_meta: dict[str, Any] | None = None
 
 
 class CaseDocumentPatch(BaseModel):
