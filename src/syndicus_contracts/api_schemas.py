@@ -335,12 +335,24 @@ class CaseNewsCreate(BaseModel):
 class CaseNewsMarkUploaded(BaseModel):
     """Body für ``POST /cases/{id}/news/{news_id}/mark-uploaded`` (Box → Core).
 
-    Die Box führt den eigentlichen Adapter-Upload (Dokumente + Aktennotiz,
-    deanonymisiert) selbst aus und meldet danach nur den Erfolg zentral zurück;
-    ``note_uploaded_id`` = KS-ID der angelegten Aktennotiz, falls vorhanden.
+    Die Box führt den eigentlichen Adapter-Upload (die Roh-Dokumente) selbst
+    aus und meldet danach nur den Erfolg zentral zurück. ``note_uploaded_id``
+    = KS-ID einer angelegten Aktennotiz, falls es eine gab — seit 2026-08-11
+    lädt der Neuigkeiten-Upload keine Analyse-Notiz mehr in die
+    Kanzleisoftware (User-Entscheid: dorthin gehen Roh-Dokumente und die
+    Produkte des Aktionen-Tabs, keine unbestätigte LLM-Zusammenfassung), das
+    Feld bleibt für Bestandszeilen und den Rückweg erhalten.
+
+    ``resolve`` trennt „übertragen" von „erledigt". Der Stempel erledigte die
+    Neuigkeit bisher immer mit — richtig für den Klick des Anwalts (er hat sie
+    gesehen), falsch für den **automatischen** Upload (``auto_ks_upload`` auf
+    der Box): dort hat niemand hingeschaut, und eine sofort in die Historie
+    gewanderte Karte nähme dem Anwalt das Signal „neue Post". Default bleibt
+    ``True`` — unterhalb des Features byte-identisches Verhalten.
     """
 
     note_uploaded_id: str | None = None
+    resolve: bool = True
 
 
 class RunState(BaseModel):
