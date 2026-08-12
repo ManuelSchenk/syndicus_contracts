@@ -400,6 +400,14 @@ class CaseSummary(BaseModel):
     # Mindestens ein lokales Dokument (upload/posteingang) ist noch nicht geprüft
     # (review_confirmed_at IS NULL) — treibt das „Freigabe erforderlich"-Badge.
     needs_document_review: bool = False
+    # Vom E2E-Harness angelegt (Header ``X-E2E-Harness``). Sichtbar gemacht am
+    # 2026-08-12, weil zwei Harness-Suiten Fälle LÖSCHEN und die Entscheidung
+    # „darf ich das?" bis dahin an Heuristiken hing (Aktennummern-Präfix), die
+    # auf einer Kunden-Instanz falsch sind: ``NEU-…`` vergibt auch das Produkt,
+    # für jede Mail ohne Treffer. Das Flag ist die einzige belastbare Auskunft
+    # — es stand nur in der DB. Für das Produkt-UI bedeutungslos, für jeden
+    # löschenden Automatismus die Voraussetzung.
+    created_by_e2e: bool = False
 
 
 class CaseDetail(BaseModel):

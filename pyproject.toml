@@ -6,7 +6,7 @@ name = "syndicus-contracts"
 #   MAJOR  bump nur mit CONTRACT_VERSION — brechende Naht (Core akzeptiert N-1)
 #   MINOR  additiv (neues optionales Feld/Modell) — alte Boxen laufen weiter
 #   PATCH  Verhalten/Doku ohne Formänderung (z. B. Backoff-Kurve, Fehlermapping)
-version = "1.6.0"
+version = "1.7.0"
 description = "Syndicus HTTP-Contract — Boundary-Typen zwischen syndicus_client (Kanzlei-Box) und syndicus_agents (Core-API). Der Server besitzt den Contract; versioniert über contract_version."
 requires-python = ">=3.12"
 dependencies = [
