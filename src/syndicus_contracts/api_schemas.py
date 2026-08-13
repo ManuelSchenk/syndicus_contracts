@@ -211,6 +211,11 @@ class CaseDocumentRead(BaseModel):
     source_file_hash: str = ""
     adapter_created_at: str = ""
     adapter_updated_at: str = ""
+    # Contract 1.8.0 (todo.md Nr. 41): KS-Referenz eines Segment-Dokuments —
+    # die Originaldatei liegt EINMAL in der KS, die Trägerzeile hält deren Id
+    # in ``document_id``, die Geschwister-Segmente hier. "" = kein Segment
+    # bzw. (noch) nicht hochgeladen.
+    ks_document_id: str = ""
     # A5/V4-Kurzfassung des LOW-LLM (``summarize_documents``, docs/voranalyse.md
     # § 5) — der Render-String, den die Akte-Ansicht über dem Dokumenttext
     # zeigt. Aus anonymisiertem Text erzeugt, trägt also Platzhalter; die Box
@@ -260,6 +265,15 @@ class CaseDocumentPatch(BaseModel):
     adapter_created_at: str | None = None
     adapter_updated_at: str | None = None
     source_file_hash: str | None = None
+    # Contract 1.8.0 (todo.md Nr. 41): KS-Referenz eines SEGMENT-Dokuments,
+    # dessen Originaldatei EINMAL in der Kanzleisoftware liegt. Die Box lädt
+    # ein segmentiertes Groß-PDF als eine Datei hoch; die Trägerzeile bekommt
+    # wie bisher ``document_id`` = KS-Id (Matching-Schlüssel des
+    # Ingest-Vollstands, fallweit eindeutig), die Geschwister-Segmente
+    # referenzieren dieselbe KS-Datei über DIESES Feld — ohne den
+    # Matching-Schlüssel anzufassen. Vorher kollidierte Row 2 am
+    # Eindeutigkeits-409 des Core (Befund 2026-08-13, Groß-Akten 006/007).
+    ks_document_id: str | None = None
 
 
 class CaseDisplay(BaseModel):
