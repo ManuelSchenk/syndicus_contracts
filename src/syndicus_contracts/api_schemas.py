@@ -84,18 +84,9 @@ class ReanonymizationReport(BaseModel):
     blackout: bool = False
 
 
-class AttorneyWorkload(BaseModel):
-    name: str
-    open_cases: int
-    specializations: list[str]
-
-
-class CockpitStats(BaseModel):
-    total_open_cases: int
-    new_today: int
-    critical_deadlines: int
-    avg_processing_seconds: float | None
-    attorney_workload: list[AttorneyWorkload]
+# AttorneyWorkload/CockpitStats sind mit der Cockpit-Seite entfernt
+# (2026-08-13 durch das Ticket-Board ersetzt; die Stats-Route des Core
+# fiel im selben Zug). Contract 1.9.0.
 
 
 # --- Briefing schemas ---
@@ -375,6 +366,13 @@ class RunState(BaseModel):
     waiting" from this over REST — SSE is only a nudge over the same record.
     """
 
+    # Lauf-Identität (1.9.0, todo Nr. 57): der Client erkennt am Wechsel der
+    # ``id``, dass ein NEUER Lauf begonnen hat — und öffnet seinen (beim
+    # terminalen Event des Vorgängers geschlossenen) SSE-Stream neu. Ohne
+    # dieses Feld bekam ein automatisch gestarteter Folgelauf (Voranalyse am
+    # finish, Wiedervorlage, Posteingang) auf einer offenen Fall-Seite nie
+    # eine Leitung. Optional nur für N-1-Kompatibilität.
+    id: uuid.UUID | None = None
     status: str  # queued|running|waiting|completed|completed_with_errors|cancelled
     trigger: str  # manual_refresh|scheduled|inbox
     current_step: str | None = None
