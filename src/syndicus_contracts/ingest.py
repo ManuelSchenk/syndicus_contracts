@@ -1,4 +1,6 @@
-"""Ingest-Push der Box — die Schreibseite der Naht (repo-split-plan.md § 1.2/D8).
+"""Ingest-Push der Box — die Schreibseite der Naht
+(syndicus_agents/docs/analyse-pipeline.md; Inversions-TODO D8 in
+docs/db_inversion_concept.md).
 
 Die Einlese-Hälfte (retrieve → ocr → anonymize) läuft auf der Kanzlei-Box
 (``syndicus_client``); ihre Ergebnisse — KS-Falldaten, anonymisierte

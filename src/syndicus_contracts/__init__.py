@@ -1,7 +1,8 @@
 """Syndicus HTTP-Contract — Boundary-Vokabular zwischen Box und Core.
 
 Der Server (``syndicus_agents``-Core-API) besitzt den Contract
-(repo-split-plan.md § 4.1); ``syndicus_client`` konsumiert dieses Paket.
+(syndicus_agents/docs/architecture.md § 1); ``syndicus_client`` konsumiert
+dieses Paket.
 Kompatibilitätsregel: der Core akzeptiert ``CONTRACT_VERSION`` und N-1.
 """
 
