@@ -376,7 +376,12 @@ class RunState(BaseModel):
     status: str  # queued|running|waiting|completed|completed_with_errors|cancelled
     trigger: str  # manual_refresh|scheduled|inbox
     current_step: str | None = None
-    blocked_on: str | None = None  # ai_tools|llm|adapter (only while waiting)
+    # ai_tools|llm|adapter. Normalerweise nur waehrend ``waiting`` gesetzt.
+    # Ausnahme seit 2026-08-14: ein TERMINAL an einem gesperrten KI-Zugang
+    # gescheiterter Lauf traegt ``blocked_on="llm"`` weiter (Guthaben leer,
+    # Schluessel ungueltig, Modell unbekannt) — dort hilft Warten nicht, und
+    # die Fall-Seite baut daraus ihr Banner samt Wiederanlauf-Knopf.
+    blocked_on: str | None = None
     blocked_reason: str | None = None
     next_retry_at: datetime.datetime | None = None
     started_at: datetime.datetime | None = None
